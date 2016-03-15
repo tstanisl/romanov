@@ -90,6 +90,27 @@ class Int():
     def __le__(a, b):
         return Int._cmp(a, b, 'bvsle')
 
+    def _op2(a, b, smt2func, bitsfunc):
+        if isinstance(a, int):
+            a = Int._from_int(a)
+        if isinstance(b, int):
+            b = Int._from_int(b)
+        assert isinstance(a, Int)
+        assert isinstance(b, Int)
+        bits = bitsfunc(len(a._bv), len(b._bv))
+        a = a._bv.signex(bits)
+        b = b._bv.signex(bits)
+        formula = '({} {} {})'.format(smt2func, a, b)
+        return Int(bits, formula)
+    def __add__(a, b):
+        return Int._op2(a, b, 'bvadd', lambda a,b: max(a,b) + 1)
+    def __radd__(a, b):
+        return Int._op2(a, b, 'bvadd', lambda a,b: max(a, b) + 1)
+    def __mul__(a, b):
+        return Int._op2(a, b, 'bvmul', sum)
+    def __rmul__(a, b):
+        return Int._op2(a, b, 'bvmul', sum)
+
 def Unsigned(bv):
         assert isinstance(bv, BV)
         bits = len(bv) + 1
@@ -152,6 +173,9 @@ def main():
     k = Bool()
     l = (k == j)
     m = (j == False)
+    x = Int()
+    y = Int()
+    u = (x + 3 == y)
 
 if __name__ == "__main__":
 	main()
