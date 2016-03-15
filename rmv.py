@@ -28,20 +28,23 @@ class BV:
         res = BV(1, formula)
         return res
 
-class Int(BV):
+class Int():
     def __init__(self, bits = 16):
-        BV.__init__(self, bits)
+        self.bv = BV(bits)
+
+    def __str__(self):
+        return str(self.bv)
 
 class Unsigned(Int):
     def __init__(self, bv):
         assert isinstance(bv, BV)
-        BV.__init__(self, bv.bits + 1)
+        Int.__init__(self, bv.bits + 1)
         emit('(assert (= {} ((_ zero_extend 1) {})))'.format(self, bv))
 
 class Signed(Int):
     def __init__(self, bv):
         assert isinstance(bv, BV)
-        BV.__init__(self, bv.bits)
+        Int.__init__(self, bv.bits)
         emit('(assert (= {} {}))'.format(self, bv))
 
 def main():
@@ -49,7 +52,7 @@ def main():
     b = BV(4)
     c = (a == b)
     d = Int(4)
-    e = Signed(d)
+    e = Signed(c)
     f = Unsigned(a)
 
 if __name__ == "__main__":
