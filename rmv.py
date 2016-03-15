@@ -168,7 +168,16 @@ class Bool():
     def __str__(self):
         return str(self._str)
 
-def main():
+def Check(v):
+    assert isinstance(v, Bool)
+    emit('(assert (not {}))'.format(v))
+    emit('(check-sat)')
+
+def Assert(v):
+    assert isinstance(v, Bool)
+    emit('(assert {})'.format(v))
+
+def test0():
     a = BV(4)
     b = BV(4)
     c = (a == b)
@@ -186,5 +195,11 @@ def main():
     y = Int()
     u = (x + 3 == y)
 
+def test1():
+    x = Int()
+    y = Int()
+    Assert(y >= 0)
+    Check(x + y > x)
+
 if __name__ == "__main__":
-	main()
+	test1()
