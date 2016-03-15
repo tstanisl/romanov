@@ -1,42 +1,56 @@
 def emit(smt):
     print(smt)
 
-def _toBV(a):
-    if isinstance(a, BV):
-        return a
-    elif isinstance(a, int):
-        return Int(a)
-    else:
-        raise TypeError('Cannot convert to BV (bit vector)')
-
 class BV:
     _nBVs = 0
-    def __init__(self, bits):
+
+    def __init__(self, bits, _value = None):
         assert isinstance(bits, int)
         assert bits > 0
-        BV.bits = bits
-        BV._str = 'T{}'.format(BV._nBVs)
+        self.bits = bits
+        self._str = 'T{}'.format(BV._nBVs)
         BV._nBVs += 1
-        emit('(declare-fun {} () (_ BitVec {}))'.format(self, bits))
+        bvstr = '(_ BitVec {})'.format(bits)
+        if _value is None:
+            emit('(declare-fun {} () {})'.format(self, bvstr))
+        else:
+            emit('(define-fun {} () {} {})'.format(self, bvstr, _value))
+
 
     def __str__(self):
         return self._str
 
     def __eq__(a, b):
-        b = _toBV(b)
-        bits = max(a.bits, b.bits)
-        res = BV(1)
-        emit('(assert (= {} (bvcomp {} {})))'.format(res, a, b))
+        assert isinstance(a, BV)
+        assert isinstance(b, BV)
+        assert a.bits == b.bits
+        formula = '(bvcomp {} {})'.format(a, b)
+        res = BV(1, formula)
         return res
 
 class Int(BV):
-    def __init__(self, value = None, bits = 16):
+    def __init__(self, bits = 16):
         BV.__init__(self, bits)
+
+class Unsigned(Int):
+    def __init__(self, bv):
+        assert isinstance(bv, BV)
+        BV.__init__(self, bv.bits + 1)
+        emit('(assert (= {} ((_ zero_extend 1) {})))'.format(self, bv))
+
+class Signed(Int):
+    def __init__(self, bv):
+        assert isinstance(bv, BV)
+        BV.__init__(self, bv.bits)
+        emit('(assert (= {} {}))'.format(self, bv))
 
 def main():
     a = BV(4)
     b = BV(4)
     c = (a == b)
+    d = Int(4)
+    e = Signed(d)
+    f = Unsigned(a)
 
 if __name__ == "__main__":
 	main()
