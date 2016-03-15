@@ -1,20 +1,24 @@
 def emit(smt):
     print(smt)
 
-class BV:
-    _nBVs = 0
+def newtmp(sort, value = None):
+    ntmp = getattr(newtmp, 'ntmp', 0)
+    name = 'T{}'.format(ntmp)
+    if isinstance(sort, int):
+        sort = '(_ BitVec {})'.format(sort)
+    if value is None:
+        emit('(declare-fun {} () {})'.format(name, sort))
+    else:
+        emit('(define-fun {} () {} {})'.format(name, sort, value))
+    newtmp.ntmp = ntmp + 1
+    return name
 
+class BV:
     def __init__(self, bits, _value = None):
         assert isinstance(bits, int)
         assert bits > 0
         self._bits = bits
-        self._str = 'T{}'.format(BV._nBVs)
-        BV._nBVs += 1
-        tstr = '(_ BitVec {})'.format(bits)
-        if _value is None:
-            emit('(declare-fun {} () {})'.format(self, tstr))
-        else:
-            emit('(define-fun {} () {} {})'.format(self, tstr, _value))
+        self._str = newtmp(bits, _value)
 
     def _extend(self, exbits, exfunc):
         assert exbits >= 0
@@ -60,7 +64,7 @@ class Int():
     def __str__(self):
         return str(self._bv)
 
-    def __eq__(a, b):
+    def _cmp(a, b, smt2func):
         if isinstance(a, int):
             a = Int._from_int(a)
         if isinstance(b, int):
@@ -70,7 +74,21 @@ class Int():
         bits = max(len(a._bv), len(b._bv))
         a = a._bv.signex(bits)
         b = b._bv.signex(bits)
-        return a == b
+        formula = '({} {} {})'.format(smt2func, a, b)
+        return Bool(formula)
+
+    def __eq__(a, b):
+        return Int._cmp(a, b, '=')
+    def __ne__(a, b):
+        return Int._cmp(a, b, 'distinct')
+    def __gt__(a, b):
+        return Int._cmp(a, b, 'bvsgt')
+    def __ge__(a, b):
+        return Int._cmp(a, b, 'bvsge')
+    def __lt__(a, b):
+        return Int._cmp(a, b, 'bvslt')
+    def __le__(a, b):
+        return Int._cmp(a, b, 'bvsle')
 
 class Unsigned(Int):
     def __init__(self, bv):
@@ -83,6 +101,13 @@ class Signed(Int):
         assert isinstance(bv, BV)
         Int.__init__(self, len(bv), bv)
 
+class Bool():
+    def __init__(self, _value = None):
+        self._str = newtmp('Bool', _value)
+
+    def __str__(self):
+        return str(self._str)
+
 def main():
     a = BV(4)
     b = BV(4)
@@ -93,7 +118,7 @@ def main():
     g = Int(3)
     h = (d == g)
     i = (g == 2)
-    j = (g == -3)
+    j = (-4 < g)
 
 if __name__ == "__main__":
 	main()
