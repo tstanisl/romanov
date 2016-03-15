@@ -7,15 +7,33 @@ class BV:
     def __init__(self, bits, _value = None):
         assert isinstance(bits, int)
         assert bits > 0
-        self.bits = bits
+        self._bits = bits
         self._str = 'T{}'.format(BV._nBVs)
         BV._nBVs += 1
-        bvstr = '(_ BitVec {})'.format(bits)
+        tstr = '(_ BitVec {})'.format(bits)
         if _value is None:
-            emit('(declare-fun {} () {})'.format(self, bvstr))
+            emit('(declare-fun {} () {})'.format(self, tstr))
         else:
-            emit('(define-fun {} () {} {})'.format(self, bvstr, _value))
+            emit('(define-fun {} () {} {})'.format(self, tstr, _value))
 
+    def signex(self, bits):
+        assert bits >= len(self)
+        if bits == len(self):
+            return self
+        exbits = bits - len(self)
+        formula = '((_ sign_extend {}) {})'.format(exbits, self)
+        return BV(bits, formula)
+
+    def zeroex(self, bits):
+        assert bits >= len(self)
+        if bits == len(self):
+            return self
+        exbits = bits - len(self)
+        formula = '((_ zero_extend {}) {})'.format(exbits, self)
+        return BV(bits, formula)
+
+    def __len__(self):
+        return self._bits
 
     def __str__(self):
         return self._str
@@ -23,29 +41,36 @@ class BV:
     def __eq__(a, b):
         assert isinstance(a, BV)
         assert isinstance(b, BV)
-        assert a.bits == b.bits
+        assert len(a) == len(b)
         formula = '(bvcomp {} {})'.format(a, b)
         res = BV(1, formula)
         return res
 
 class Int():
-    def __init__(self, bits = 16):
-        self.bv = BV(bits)
+    def __init__(self, bits = 16, _value = None):
+        self._bv = BV(bits, _value)
 
     def __str__(self):
-        return str(self.bv)
+        return str(self._bv)
+
+    def __eq__(a, b):
+        assert isinstance(a, Int)
+        assert isinstance(b, Int)
+        bits = max(len(a._bv), len(b._bv))
+        a = a._bv.signex(bits)
+        b = b._bv.signex(bits)
+        return a == b
 
 class Unsigned(Int):
     def __init__(self, bv):
         assert isinstance(bv, BV)
-        Int.__init__(self, bv.bits + 1)
-        emit('(assert (= {} ((_ zero_extend 1) {})))'.format(self, bv))
+        bits = len(bv) + 1
+        Int.__init__(self, bits, bv.zeroex(bits))
 
 class Signed(Int):
     def __init__(self, bv):
         assert isinstance(bv, BV)
-        Int.__init__(self, bv.bits)
-        emit('(assert (= {} {}))'.format(self, bv))
+        Int.__init__(self, len(bv), bv)
 
 def main():
     a = BV(4)
@@ -54,6 +79,8 @@ def main():
     d = Int(4)
     e = Signed(c)
     f = Unsigned(a)
+    g = Int(3)
+    h = (d == g)
 
 if __name__ == "__main__":
 	main()
