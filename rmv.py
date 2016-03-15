@@ -16,21 +16,18 @@ class BV:
         else:
             emit('(define-fun {} () {} {})'.format(self, tstr, _value))
 
-    def signex(self, bits):
-        assert bits >= len(self)
-        if bits == len(self):
+    def _extend(self, exbits, exfunc):
+        assert exbits >= 0
+        if exbits == 0:
             return self
-        exbits = bits - len(self)
-        formula = '((_ sign_extend {}) {})'.format(exbits, self)
-        return BV(bits, formula)
+        formula = '((_ {} {}) {})'.format(exfunc, exbits, self)
+        return BV(len(self) + exbits, formula)
+
+    def signex(self, bits):
+        return self._extend(bits - len(self), 'sign_extend')
 
     def zeroex(self, bits):
-        assert bits >= len(self)
-        if bits == len(self):
-            return self
-        exbits = bits - len(self)
-        formula = '((_ zero_extend {}) {})'.format(exbits, self)
-        return BV(bits, formula)
+        return self._extend(bits - len(self), 'zero_extend')
 
     def __len__(self):
         return self._bits
