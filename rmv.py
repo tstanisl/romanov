@@ -155,6 +155,12 @@ class Bool():
         return Bool._op2(a, b, 'or')
     def __xor__(a, b):
         return Bool._op2(a, b, 'xor')
+    def __rxor__(a, b):
+        return Bool._op2(a, b, 'xor')
+    def __rshift__(a, b):
+        return Bool._op2(a, b, '=>')
+    def __rrshift__(a, b):
+        return Bool._op2(a, b, '=>')
     def __inv__(a):
         assert isinstance(a, Bool)
         return Bool('(not {})'.format(a))
