@@ -53,7 +53,7 @@ class Int():
             bits = val.bit_length() + 1
             formula = '(_ bv{} {})'.format(val, bits)
         else:
-            bits = val.bit_length()
+            bits = (1 + val).bit_length() + 1
             formula = '(_ bv{} {})'.format(2 ** bits + val, bits)
         return Int(bits, formula)
 
@@ -93,7 +93,7 @@ def main():
     g = Int(3)
     h = (d == g)
     i = (g == 2)
-    j = (g == -342)
+    j = (g == -3)
 
 if __name__ == "__main__":
 	main()
