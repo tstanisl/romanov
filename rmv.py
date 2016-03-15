@@ -90,16 +90,14 @@ class Int():
     def __le__(a, b):
         return Int._cmp(a, b, 'bvsle')
 
-class Unsigned(Int):
-    def __init__(self, bv):
+def Unsigned(bv):
         assert isinstance(bv, BV)
         bits = len(bv) + 1
-        Int.__init__(self, bits, bv.zeroex(bits))
+        return Int(bits, bv.zeroex(bits))
 
-class Signed(Int):
-    def __init__(self, bv):
+def Signed(bv):
         assert isinstance(bv, BV)
-        Int.__init__(self, len(bv), bv)
+        return Int(len(bv), bv)
 
 class Bool():
     def __init__(self, _value = None):
