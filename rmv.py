@@ -103,6 +103,38 @@ class Bool():
     def __init__(self, _value = None):
         self._str = newtmp('Bool', _value)
 
+    def _from_bool(val):
+        assert isinstance(val, bool)
+        return Bool('true' if val else 'false')
+
+    def _op2(a, b, smt2func):
+        if isinstance(a, bool):
+            a = Bool._from_bool(a)
+        if isinstance(b, bool):
+            b = Bool._from_bool(b)
+        assert isinstance(a, Bool)
+        assert isinstance(b, Bool)
+        formula = '({} {} {})'.format(smt2func, a, b)
+        return Bool(formula)
+
+    def __eq__(a, b):
+        return Bool._op2(a, b, '=')
+    def __ne__(a, b):
+        return Bool._op2(a, b, 'dictinct')
+    def __and__(a, b):
+        return Bool._op2(a, b, 'and')
+    def __rand__(a, b):
+        return Bool._op2(a, b, 'and')
+    def __or__(a, b):
+        return Bool._op2(a, b, 'or')
+    def __ror__(a, b):
+        return Bool._op2(a, b, 'or')
+    def __xor__(a, b):
+        return Bool._op2(a, b, 'xor')
+    def __inv__(a):
+        assert isinstance(a, Bool)
+        return Bool('(not {})'.format(a))
+
     def __str__(self):
         return str(self._str)
 
@@ -117,6 +149,9 @@ def main():
     h = (d == g)
     i = (g == 2)
     j = (-4 < g)
+    k = Bool()
+    l = (k == j)
+    m = (j == False)
 
 if __name__ == "__main__":
 	main()
