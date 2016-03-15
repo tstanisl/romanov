@@ -1,4 +1,7 @@
 def emit(smt):
+    if not getattr(emit, 'header', False):
+        print('(set-logic QF_BV)')
+        emit.header = True
     print(smt)
 
 def newtmp(sort, value = None):
