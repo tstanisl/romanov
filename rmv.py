@@ -47,10 +47,24 @@ class Int():
     def __init__(self, bits = 16, _value = None):
         self._bv = BV(bits, _value)
 
+    def _from_int(val):
+        assert isinstance(val, int)
+        if val >= 0:
+            bits = val.bit_length() + 1
+            formula = '(_ bv{} {})'.format(val, bits)
+        else:
+            bits = val.bit_length()
+            formula = '(_ bv{} {})'.format(2 ** bits + val, bits)
+        return Int(bits, formula)
+
     def __str__(self):
         return str(self._bv)
 
     def __eq__(a, b):
+        if isinstance(a, int):
+            a = Int._from_int(a)
+        if isinstance(b, int):
+            b = Int._from_int(b)
         assert isinstance(a, Int)
         assert isinstance(b, Int)
         bits = max(len(a._bv), len(b._bv))
@@ -78,6 +92,8 @@ def main():
     f = Unsigned(a)
     g = Int(3)
     h = (d == g)
+    i = (g == 2)
+    j = (g == -342)
 
 if __name__ == "__main__":
 	main()
