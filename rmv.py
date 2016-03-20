@@ -1,8 +1,31 @@
+import sys, subprocess
+
+_current = None
+
+class Context:
+    def __init__(self, args = None):
+        if args == None:
+            self._outfile = sys.stdout
+            self._infile = None
+        else:
+            pipe = subprocess.Popen(args, stdin = subprocess.PIPE,
+                stdout = subprocess.PIPE, universal_newlines = True,
+                bufsize = 1)
+            self._outfile = pipe.stdin
+            self._infile = pipe.stdout
+        self._ntmp = 0
+        self._dumps = dict()
+        self._outfile.write('(set-logic QF_BV)\n')
+
+def make_current(ctx):
+    global _current
+    _current = ctx
+
 def emit(smt):
-    if not getattr(emit, 'header', False):
-        print('(set-logic QF_BV)')
-        emit.header = True
-    print(smt)
+        _current._outfile.write(smt)
+        _current._outfile.write('\n')
+        if smt.strip() == '(check-sat)':
+            _current._outfile.flush()
 
 def newtmp(sort, value = None):
     ntmp = getattr(newtmp, 'ntmp', 0)
@@ -222,4 +245,7 @@ def test1():
     Assert(x + y > 4)
 
 if __name__ == "__main__":
-	test1()
+    #ctx = Context()
+    ctx = Context(['z3', '-smt2', '-in'])
+    make_current(ctx)
+    test1()
