@@ -131,6 +131,12 @@ class Bool():
         assert isinstance(val, bool)
         return Bool('true' if val else 'false')
 
+#    TODO: alternative implementation
+#    def _op(fmt, *args):
+#        args = (Bool._toBool(arg) for arg in *args)
+#        formula = fmt.format(*args)
+#        return Bool(formula)
+
     def _op2(a, b, smt2func):
         if isinstance(a, bool):
             a = Bool._from_bool(a)
