@@ -24,8 +24,14 @@ def make_current(ctx):
 def emit(smt):
         _current._outfile.write(smt)
         _current._outfile.write('\n')
-        if smt.strip() == '(check-sat)':
-            _current._outfile.flush()
+
+def query(smt = None):
+    if smt:
+        emit(smt)
+    _current._outfile.flush()
+    if not _current._infile:
+        return 'unknown'
+    return _current._infile.readline().strip()
 
 def newtmp(sort, value = None):
     ntmp = getattr(newtmp, 'ntmp', 0)
@@ -209,9 +215,12 @@ def Dump(value, name):
 def Assert(v):
     assert isinstance(v, Bool)
     emit('(assert (not {}))'.format(v))
-    emit('(check-sat)')
+    ans = query('(check-sat)')
+    if ans == 'unsat':
+        return True
     for k,v in _dumps.items():
-        emit('(get-value ({}))'.format(v))
+        ans = query('(get-value ({}))'.format(v))
+        print(k, ':', ans)
 
 def Assume(v):
     assert isinstance(v, Bool)
