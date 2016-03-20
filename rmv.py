@@ -110,9 +110,9 @@ class Int():
     def __radd__(a, b):
         return Int._op2(a, b, 'bvadd', lambda a,b: max(a, b) + 1)
     def __mul__(a, b):
-        return Int._op2(a, b, 'bvmul', sum)
+        return Int._op2(a, b, 'bvmul', int.__add__)
     def __rmul__(a, b):
-        return Int._op2(a, b, 'bvmul', sum)
+        return Int._op2(a, b, 'bvmul', int.__add__)
 
 def Unsigned(bv):
         assert isinstance(bv, BV)
@@ -168,12 +168,23 @@ class Bool():
     def __str__(self):
         return str(self._str)
 
-def Check(v):
+_dumps = dict()
+
+def Dump(value, name):
+    if '|' in name:
+        raise AttributeError('| is not allowed in Dump name')
+    if name in _dumps:
+        raise KeyError('name already used')
+    _dumps[name] = value
+
+def Assert(v):
     assert isinstance(v, Bool)
     emit('(assert (not {}))'.format(v))
     emit('(check-sat)')
+    for k,v in _dumps.items():
+        emit('(get-value ({}))'.format(v))
 
-def Assert(v):
+def Assume(v):
     assert isinstance(v, Bool)
     emit('(assert {})'.format(v))
 
@@ -198,8 +209,11 @@ def test0():
 def test1():
     x = Int()
     y = Int()
-    Assert(y >= 0)
-    Check(x + y > x)
+    Dump(x, 'x')
+    Dump(y, 'y')
+    Assume(x > 1)
+    Assume(y > 1)
+    Assert(x + y > 4)
 
 if __name__ == "__main__":
 	test1()
