@@ -1,4 +1,6 @@
-import sys, subprocess
+import re
+import subprocess
+import sys
 
 _current = None
 
@@ -220,7 +222,17 @@ def Assert(v):
         return True
     for k,v in _dumps.items():
         ans = query('(get-value ({}))'.format(v))
-        print(k, ':', ans)
+        rexp = r'\(\({} (.*)\)\)'.format(v)
+        match = re.fullmatch(rexp, ans)
+        if match:
+            print(k, ':', match.group(1))
+        else:
+            print('Syntax error:', ans)
+
+        #match = rexp.
+        #ans = [x for x in re.split('[()\s]', ans) if x]
+        #print(k, ':', ans[1])
+    return True
 
 def Assume(v):
     assert isinstance(v, Bool)
@@ -255,6 +267,10 @@ def test1():
 
 if __name__ == "__main__":
     #ctx = Context()
-    ctx = Context(['z3', '-smt2', '-in'])
+    #ctx = Context(['z3', '-smt2', '-in'])
+    #ctx = Context(['boolector2', '-i', '-m'])
+    ctx = Context(['yices-smt2'])
+    #ctx = Context(['cvc4', '--lang', 'smt2', '-m'])
+    #ctx = Context(['stp', '--SMTLIB2'])
     make_current(ctx)
     test1()
