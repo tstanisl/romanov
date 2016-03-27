@@ -8,8 +8,8 @@ class Solver:
 
     def reset(self):
         for key, val in self._options:
-            self.emit('(set-option :{} {}\n)'.format(key, val))
-        self.emit('(set-logic {})\n'.format(self._logic))
+            self.emit('(set-option :{} {})'.format(key, val))
+        self.emit('(set-logic {})'.format(self._logic))
         
     def emit(self, smt):
         raise NotImplementedError
