@@ -1,4 +1,3 @@
-import romanov.core
 
 class Solver:
     def __init__(self, *, logic='QF_AUFBV', has_model=True, options={}):
