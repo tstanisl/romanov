@@ -1,4 +1,5 @@
-from romanov.solver import Solver
+from romanov.solver import Solver, DumpSolver
+import io
 import unittest
 
 class SolverTest(unittest.TestCase):
@@ -21,6 +22,39 @@ class SolverTest(unittest.TestCase):
         s = Solver()
         with self.assertRaises(NotImplementedError):
             s.recv()
+
+class DumpSolverTest(unittest.TestCase):
+    def test_init(self):
+        f = io.StringIO()
+        s = DumpSolver(f)
+
+    def test_reset(self):
+        f = io.StringIO(newline = '')
+        s = DumpSolver(f)
+        s.reset()
+        smt = '(set-logic QF_AUFBV)\n'
+        self.assertTrue(f.getvalue() == smt)
+
+    def test_recv(self):
+        f = io.StringIO(newline = '')
+        s = DumpSolver(f)
+        ans = s.recv()
+        self.assertTrue(ans == 'unknown')
+
+    def test_emit(self):
+        f = io.StringIO(newline = '')
+        s = DumpSolver(f)
+        s.emit('hello')
+        s.emit('world')
+        smt = 'hello\nworld\n'
+        self.assertTrue(f.getvalue() == smt)
+    def test_emit(self):
+        f = io.StringIO(newline = '')
+        s = DumpSolver(f)
+        s.emit('hello')
+        s.emit('world')
+        smt = 'hello\nworld\n'
+        self.assertTrue(f.getvalue() == smt)
 
 if __name__ == '__main__':
     unittest.main()
