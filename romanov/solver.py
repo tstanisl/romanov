@@ -16,3 +16,13 @@ class Solver:
 
     def recv(self):
         raise NotImplementedError
+
+class DumpSolver(Solver):
+    def __init__(self, report_file):
+        Solver.__init__(self, has_model = False)
+        self._report_file = report_file
+    def emit(self, smt):
+        self._report_file.write(smt)
+        self._report_file.write('\n')
+    def recv(self):
+        return 'unknown'
