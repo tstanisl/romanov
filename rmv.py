@@ -197,7 +197,7 @@ class Bool():
     def __rshift__(a, b):
         return Bool._op2(a, b, '=>')
     def __rrshift__(a, b):
-        return Bool._op2(a, b, '=>')
+        return Bool._op2(b, a, '=>')
     def __inv__(a):
         assert isinstance(a, Bool)
         return Bool('(not {})'.format(a))
