@@ -1,7 +1,7 @@
 import romanov.core
 
 class Solver:
-    def __init__(self, logic = 'QF_AUFBV', has_model = True, options = {}):
+    def __init__(self, *, logic = 'QF_AUFBV', has_model = True, options = {}):
         self._logic = logic
         self.has_model = has_model
         self._options = options
