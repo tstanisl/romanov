@@ -1,60 +1,64 @@
+"Unit tests for SMTLIB2 solvers for romanov package"
 from romanov.solver import Solver, DumpSolver
 import io
 import unittest
 
 class SolverTest(unittest.TestCase):
+    "Tests API of base romanov.Solver class."
     def test_has_model(self):
-        s = Solver()
-        self.assertTrue(s.has_model)
+        "Check if Solver generates model."
+        solver = Solver()
+        self.assertTrue(solver.has_model)
 
-        s = Solver(has_model = True)
-        self.assertTrue(s.has_model)
+        solver = Solver(has_model=True)
+        self.assertTrue(solver.has_model)
 
-        s = Solver(has_model = False)
-        self.assertFalse(s.has_model)
+        solver = Solver(has_model=False)
+        self.assertFalse(solver.has_model)
 
     def test_emit(self):
-        s = Solver()
+        "Check if emit() is not implemented."
+        solver = Solver()
         with self.assertRaises(NotImplementedError):
-            s.emit('')
+            solver.emit('')
 
     def test_recv(self):
-        s = Solver()
+        "Check if recv() is not implemented."
+        solver = Solver()
         with self.assertRaises(NotImplementedError):
-            s.recv()
+            solver.recv()
 
 class DumpSolverTest(unittest.TestCase):
-    def test_init(self):
-        f = io.StringIO()
-        s = DumpSolver(f)
+    "Tests API of base romanov.DumpSolver class."
+    def test_has_model(self):
+        "Check if DumpSolver generates no model."
+        stream = io.StringIO()
+        solver = DumpSolver(stream)
+        self.assertFalse(solver.has_model)
 
     def test_reset(self):
-        f = io.StringIO(newline = '')
-        s = DumpSolver(f)
-        s.reset()
+        "Check if reset() works."
+        stream = io.StringIO(newline='')
+        solver = DumpSolver(stream)
+        solver.reset()
         smt = '(set-logic QF_AUFBV)\n'
-        self.assertTrue(f.getvalue() == smt)
+        self.assertTrue(stream.getvalue() == smt)
 
     def test_recv(self):
-        f = io.StringIO(newline = '')
-        s = DumpSolver(f)
-        ans = s.recv()
+        "Check if recv() returns unknown."
+        stream = io.StringIO(newline='')
+        solver = DumpSolver(stream)
+        ans = solver.recv()
         self.assertTrue(ans == 'unknown')
 
     def test_emit(self):
-        f = io.StringIO(newline = '')
-        s = DumpSolver(f)
-        s.emit('hello')
-        s.emit('world')
+        "Check if emit() adds newlined clause to stream."
+        stream = io.StringIO(newline='')
+        solver = DumpSolver(stream)
+        solver.emit('hello')
+        solver.emit('world')
         smt = 'hello\nworld\n'
-        self.assertTrue(f.getvalue() == smt)
-    def test_emit(self):
-        f = io.StringIO(newline = '')
-        s = DumpSolver(f)
-        s.emit('hello')
-        s.emit('world')
-        smt = 'hello\nworld\n'
-        self.assertTrue(f.getvalue() == smt)
+        self.assertTrue(stream.getvalue() == smt)
 
 if __name__ == '__main__':
     unittest.main()
