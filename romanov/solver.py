@@ -1,5 +1,7 @@
 'SMTLIB2 Solvers used with RMV package'
 
+import subprocess
+
 class Solver:
     "Abstract base class for SMT2 solvers"
     def __init__(self, *, logic='QF_AUFBV', has_model=True, options={}):
@@ -31,3 +33,30 @@ class DumpSolver(Solver):
         self._report_file.write('\n')
     def recv(self):
         return 'unknown'
+
+class PipeSolver(Solver):
+    "Solver that spawns a new process and communicates via pipe."
+    def __init__(self, *, args, has_model=True, options={}, env={}):
+        Solver.__init__(self, has_model=has_model, options=options)
+        self._args = args
+        self._env = env
+        self._pipe = None
+
+    def reset(self):
+        if self._pipe is not None:
+            self._pipe.terminate()
+
+        self._pipe = subprocess.Popen(self._args, env=self._env,
+                                      bufsize=1, universal_newlines=True,
+                                      stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE)
+
+        Solver.reset(self)
+
+    def emit(self, smt):
+        self._pipe.stdin.write(smt)
+        self._pipe.stdin.write('\n')
+
+    def recv(self):
+        self._pipe.stdin.flush()
+        return self._pipe.stdout.readline().strip()
