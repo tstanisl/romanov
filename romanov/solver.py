@@ -49,7 +49,8 @@ class PipeSolver(Solver):
         self._pipe = subprocess.Popen(self._args, env=self._env,
                                       bufsize=1, universal_newlines=True,
                                       stdin=subprocess.PIPE,
-                                      stdout=subprocess.PIPE)
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.DEVNULL)
 
         Solver.reset(self)
 
