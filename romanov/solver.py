@@ -11,7 +11,7 @@ class Solver:
 
     def reset(self):
         "Resets solver to initial state."
-        for key, val in self._options:
+        for key, val in self._options.items():
             self.emit('(set-option :{} {})'.format(key, val))
         self.emit('(set-logic {})'.format(self._logic))
 
