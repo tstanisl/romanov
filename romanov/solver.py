@@ -43,9 +43,17 @@ class PipeSolver(Solver):
         self._args = args
         self._env = env
 
-    def reset(self):
-        if self._pipe is not None:
+    def _cleanup(self):
+        "Clear internal pipe to external solver."
+        if self._pipe:
+            # Close stdin/stdout to avoid 'ResourceWarning: unclosed file'
+            self._pipe.stdin.close()
+            self._pipe.stdout.close()
+            # terminate child process
             self._pipe.terminate()
+
+    def reset(self):
+        self._cleanup()
 
         self._pipe = subprocess.Popen(self._args, env=self._env,
                                       bufsize=1, universal_newlines=True,
@@ -62,3 +70,6 @@ class PipeSolver(Solver):
     def recv(self):
         self._pipe.stdin.flush()
         return self._pipe.stdout.readline().strip()
+
+    def __del__(self):
+        self._cleanup()
