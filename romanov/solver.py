@@ -25,8 +25,8 @@ class Solver:
 
 class DumpSolver(Solver):
     "Dummy solver that prints SMT2 clauses to file. recv() returns 'unknown'"
-    def __init__(self, report_file):
-        Solver.__init__(self, has_model=False)
+    def __init__(self, report_file, **kwargs):
+        Solver.__init__(self, has_model=False, **kwargs)
         self._report_file = report_file
     def emit(self, smt):
         self._report_file.write(smt)
@@ -36,8 +36,8 @@ class DumpSolver(Solver):
 
 class PipeSolver(Solver):
     "Solver that spawns a new process and communicates via pipe."
-    def __init__(self, *, args, has_model=True, options={}, env={}):
-        Solver.__init__(self, has_model=has_model, options=options)
+    def __init__(self, args, *, env={}, **kwargs):
+        Solver.__init__(self, **kwargs)
         self._args = args
         self._env = env
         self._pipe = None
