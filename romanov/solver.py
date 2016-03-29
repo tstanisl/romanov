@@ -36,11 +36,12 @@ class DumpSolver(Solver):
 
 class PipeSolver(Solver):
     "Solver that spawns a new process and communicates via pipe."
+    _pipe = None
+
     def __init__(self, args, *, env={}, **kwargs):
         Solver.__init__(self, **kwargs)
         self._args = args
         self._env = env
-        self._pipe = None
 
     def reset(self):
         if self._pipe is not None:
