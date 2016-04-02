@@ -18,8 +18,12 @@ for arg in sys.argv[1:]:
         tic = time()
         pipe = Popen(cmdline, stdout=PIPE)
         try:
-            ans, _ = pipe.communicate(timeout=30)
+            ans, _ = pipe.communicate(timeout=10)
             ans = ans.decode().strip()
+            if ans.startswith('unknown'):
+                ans = 'unknown'
+            if ans not in ('sat', 'unsat', 'unknown', 'timeout'):
+                ans = 'failure'
             pipe = None
         except TimeoutExpired:
             ans = 'timeout'
