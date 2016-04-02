@@ -3,7 +3,6 @@ import sys
 
 argv = sys.argv
 mode = argv[1] if len(argv) > 1 else 'def1'
-assert mode in ('def1', 'def2', 'let')
 
 K = int(argv[2]) if len(argv) > 2 else 16
 R = int(argv[3]) if len(argv) > 3 else 256
@@ -57,6 +56,26 @@ elif mode == 'let':
     print('(let ((Y{} (select M{} {})))'.format(K, K, y))
     print('(distinct X{} Y{})'.format(K, K))
     print(')' * (2 * K + 4))
+elif mode == 'declet':
+    for k in range(K + 1):
+        print('(declare-fun ?X{} () {})'.format(k, etype))
+    print('(assert (let ((M0 A0))')
+    for k in range(K):
+        x = rnd()
+        y = rnd()
+        print('(let ((X{} (select M{} {})))'.format(k, k, y))
+        print('(let ((M{} (store M{} {} X{})))'.format(k + 1, k, x, k))
+    x = rnd()
+    y = rnd()
+    print('(let ((X{} (select M{} {})))'.format(K, K, x))
+    print('(let ((Y{} (select M{} {})))'.format(K, K, y))
+    print('(and')
+    print('(distinct X{} Y{})'.format(K, K))
+    for k in range(K + 1):
+        print('(= X{} ?X{})'.format(k, k))
+    print(')' * (2 * K + 5))
+else:
+    assert False, "Invalid mode"
 
 
     
