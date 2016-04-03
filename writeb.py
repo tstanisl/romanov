@@ -74,6 +74,23 @@ elif mode == 'declet':
     for k in range(K + 1):
         print('(= X{} ?X{})'.format(k, k))
     print(')' * (2 * K + 5))
+elif mode == 'declet2':
+    print('(declare-fun C0 () Bool)')
+    for k in range(K + 1):
+        print('(declare-fun ?X{} () {})'.format(k, etype))
+    print('(assert (let ((M0 A0))')
+    for k in range(K):
+        x = rnd()
+        y = rnd()
+        print('(let ((X{} (select M{} {})))'.format(k, k, y))
+        print('(let ((C{} (and C{} (= X{} ?X{}))))'.format(k + 1, k, k, k))
+        print('(let ((M{} (store M{} {} X{})))'.format(k + 1, k, x, k))
+    x = rnd()
+    y = rnd()
+    print('(let ((X{} (select M{} {})))'.format(K, K, x))
+    print('(let ((Y{} (select M{} {})))'.format(K, K, y))
+    print('(and C{} (distinct X{} Y{}))'.format(K, K, K))
+    print(')' * (3 * K + 4))
 else:
     assert False, "Invalid mode"
 
