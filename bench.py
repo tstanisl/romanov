@@ -10,6 +10,7 @@ players = {
     'z3' : ('z3',),
     'msat' : ('mathsat','-config=smtcomp2015_main.txt'),
     'yices' : ('yices-smt2',),
+    'sono' : ('sonolar',),
 }
 
 for arg in sys.argv[1:]:
