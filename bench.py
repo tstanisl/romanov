@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, DEVNULL, TimeoutExpired
 from time import time
 import sys
 
@@ -17,7 +17,7 @@ for arg in sys.argv[1:]:
     for nick, cmd in players.items():
         cmdline = cmd + (arg,)
         tic = time()
-        pipe = Popen(cmdline, stdout=PIPE)
+        pipe = Popen(cmdline, stdout=PIPE, stderr=DEVNULL)
         try:
             ans, _ = pipe.communicate(timeout=10)
             ans = ans.decode().strip()
