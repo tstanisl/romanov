@@ -7,3 +7,8 @@ for mode in let def dec; do
 	python3 op2.py $mode 2048 4 1 > op2_"$mode"_sat.smt2
 	python3 op2.py $mode 2048 4 8 > op2_"$mode"_unsat.smt2
 done
+
+for mode in def1; do
+	python3 memset.py $mode 256 16 16 2 > memset_"$mode"_sat.smt2
+	python3 memset.py $mode 256 16 16 5 > memset_"$mode"_unsat.smt2
+done
