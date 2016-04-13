@@ -8,7 +8,11 @@ for mode in let def dec; do
 	python3 op2.py $mode 2048 4 8 > op2_"$mode"_unsat.smt2
 done
 
-for mode in def1; do
-	python3 memset.py $mode 256 16 16 2 > memset_"$mode"_sat.smt2
-	python3 memset.py $mode 256 16 16 5 > memset_"$mode"_unsat.smt2
+for mode in def1 unroll; do
+	#python3 memset.py $mode 256 16 16 2 > memset_"$mode"_sat.smt2
+	#python3 memset.py $mode 256 16 16 5 > memset_"$mode"_unsat.smt2
+	#python3 memset.py $mode 128 10 5 5 > memset_"$mode"_hard.smt2
+	python3 memset.py $mode 64 10 4 5 > memset_"$mode"_64_4.smt2
+	python3 memset.py $mode 128 10 4 5 > memset_"$mode"_128_4.smt2
+	python3 memset.py $mode 64 10 5 5 > memset_"$mode"_64_5.smt2
 done
