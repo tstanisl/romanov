@@ -43,6 +43,18 @@ elif mode == 'def2':
     x = rnd()
     y = rnd()
     print('(assert (distinct (M{} {}) (M{} {})))'.format(K, x, K, y))
+elif mode == 'def3':
+    print('(define-fun M0 ((.a', itype, '))', etype, '(select A0 .a))')
+    for k in range(K):
+        x = rnd()
+        y = rnd()
+        print('(declare-fun V{} () {})'.format(k, etype))
+        print('(assert (= V{} (M{} {})))'.format(k, k, y))
+        f = '(ite (= .a {}) V{} (M{} .a))'.format(x, k, k)
+        print('(define-fun M{} ((.a {})) {} {})'.format(k + 1, itype, etype, f))
+    x = rnd()
+    y = rnd()
+    print('(assert (distinct (M{} {}) (M{} {})))'.format(K, x, K, y))
 elif mode == 'let':
     print('(assert (let ((M0 A0))')
     for k in range(K):
