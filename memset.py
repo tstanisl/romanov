@@ -85,33 +85,44 @@ elif mode == 'unroll':
     x = '(select M{} {})'.format(K, rndi())
     y = '(select M{} {})'.format(K, rndi())
     print('(assert (distinct {} {}))'.format(x, y))
-elif mode == 'unroll':
-    print('(declare-fun M0 () {})'.format(atype))
-    asserts = []
-    lambdas = []
+elif mode == 'inst':
+    for k in range(K + 1):
+        print('(declare-fun M{} () {})'.format(k, atype))
+    memsets = []
+    C = 0
+    def emit(p):
+        global C
+        K = len(memsets)
+        for k, memset in enumerate(memsets, start=1):
+            dst, val, size = memset
+            L = '(select M{} {})'.format(k, p)
+            R = '(ite (bvult (bvsub {} {}) {}) {} (select M{} {}))'.format(
+                p, dst, s2i(size), val, k - 1, p)
+            print('(let ((C{} (and C{} (= {} {}))))'.format(C + 1, C, L, R))
+            C += 1
+
+    print('(assert')
+    print('(let ((C0 true))')
     for k in range(K):
         m = rnd(8)
         dst = rndi() if m & 1 else 'P{}'.format(rnd(V))
-        val = rndb() if m & 2 else '(select M{} {})'.format(k, rndi())
+        val = rndb() if m & 2 else rndi()
         size = rnds() if m & 4 else 'S{}'.format(rnd(V))
-        print('(declare-fun M{} () {})'.format(k + 1, atype))
-        print('(assert')
-        print('(let ((S {}))'.format(size))
-        print('(let ((V {}))'.format(val))
-        print('(let ((H0 M{}))'.format(k))
-        for i in range(2**sbits):
-            bi = '(_ bv{} {})'.format(i, sbits)
-            pos = '(bvadd {} (_ bv{} {}))'.format(dst, i, ibits)
-            print('(let ((H{} (ite (bvult {} S) (store H{} {} V) H{})))'.format(
-                i + 1, bi, i, pos, i))
-        print('(= M{} H{})'.format(k + 1, 2**sbits))
-        print(')'*(2**sbits + 4))
-    x = '(select M{} {})'.format(K, rndi())
-    y = '(select M{} {})'.format(K, rndi())
-    print('(assert (= {} {}))'.format(x, y))
-    x = '(select M{} {})'.format(K, rndi())
-    y = '(select M{} {})'.format(K, rndi())
-    print('(assert (distinct {} {}))'.format(x, y))
+        if m & 2 == 0:
+            emit(val)
+            val = '(select M{} {})'.format(k, val)
+        print('(let ((V{} {}))'.format(k, val))
+        val = 'V{}'.format(k)
+        memset = (dst, val, size)
+        memsets.append(memset)
+
+    X = [rndi(), rndi(), rndi(), rndi()]
+    for i, x in enumerate(X):
+        emit(x)
+        print('(let ((X{} (select M{} {})))'.format(i, K, x))
+
+    print('(and C{} (= X0 X1) (distinct X2 X3))'.format(C))
+    print(')' * (K + C + 6))
 else:
     assert False, "Invalid mode"
 
