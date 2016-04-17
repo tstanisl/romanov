@@ -103,6 +103,51 @@ elif mode == 'declet2':
     print('(let ((Y{} (select M{} {})))'.format(K, K, y))
     print('(and C{} (distinct X{} Y{}))'.format(K, K, K))
     print(')' * (3 * K + 4))
+elif mode == 'inst1':
+    print('(assert')
+    writes = []
+    C = 0
+    def read(p):
+        global C
+        print('(let ((C{} (select A0 {})))'.format(C, p))
+        C += 1
+        for dst, val in writes:
+            cond = '(= {} {})'.format(p, dst)
+            print('(let ((C{} (ite {} {} C{})))'.format(C, cond, val, C - 1))
+            C += 1
+        return 'C{}'.format(C - 1)
+
+    for k in range(K):
+        x = rnd()
+        y = rnd()
+        val = read(y)
+        writes.append((x, val))
+    x = read(rnd())
+    y = read(rnd())
+    print('(distinct {} {})'.format(x, y))
+    print(')' * (C + 1))
+elif mode == 'inst2':
+    print('(assert')
+    writes = []
+    C = 0
+    def read(p):
+        global C
+        for dst, val in reversed(writes):
+            if p == dst:
+                return val
+        print('(let ((C{} (select A0 {})))'.format(C, p))
+        C += 1
+        return 'C{}'.format(C - 1)
+
+    for k in range(K):
+        x = rnd()
+        y = rnd()
+        val = read(y)
+        writes.append((x, val))
+    x = read(rnd())
+    y = read(rnd())
+    print('(distinct {} {})'.format(x, y))
+    print(')' * (C + 1))
 else:
     assert False, "Invalid mode"
 
