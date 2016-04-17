@@ -159,6 +159,37 @@ elif mode == 'inst':
 
     print('(and C{} (= X0 X1) (distinct X2 X3))'.format(C))
     print(')' * (K + C + 6))
+elif mode == 'inst2':
+    memsets = []
+    C = 0
+    def emit(p):
+        global C
+        print('(let ((C{} (select A0 {})))'.format(C, p))
+        C += 1
+        for k, memset in enumerate(memsets, start=1):
+            dst, val, size = memset
+            cond = '(bvult (bvsub {} {}) {})'.format(p, dst, s2i(size))
+            print('(let ((C{} (ite {} {} C{})))'.format(C, cond, val, C - 1))
+            C += 1
+        return 'C{}'.format(C - 1)
+
+    print('(assert')
+    for k in range(K):
+        m = rnd(8)
+        dst = rndi() if m & 1 else 'P{}'.format(rnd(V))
+        val = rndb() if m & 2 else rndi()
+        size = rnds() if m & 4 else 'S{}'.format(rnd(V))
+        if m & 2 == 0:
+            val = emit(val)
+        memset = (dst, val, size)
+        memsets.append(memset)
+
+    X = [rndi(), rndi(), rndi(), rndi()]
+    for i, x in enumerate(X):
+        print('(let ((X{} {}))'.format(i, emit(x)))
+
+    print('(and (= X0 X1) (distinct X2 X3))'.format(C))
+    print(')' * (C + 5))
 else:
     assert False, "Invalid mode"
 
