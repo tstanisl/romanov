@@ -7,6 +7,7 @@ players = {
     'cvc4' : ('cvc4',),
     'btor' : ('boolector',),
     'btor2' : ('boolector2',),
+    'btor2rw2' : ('boolector2','-rwl', '2'),
     'z3' : ('z3',),
     'msat' : ('mathsat','-config=smtcomp2015_main.txt'),
     'yices' : ('yices-smt2',),
@@ -14,7 +15,7 @@ players = {
 }
 
 for arg in sys.argv[1:]:
-    for nick, cmd in players.items():
+    for nick, cmd in sorted(players.items()):
         cmdline = cmd + (arg,)
         tic = time()
         pipe = Popen(cmdline, stdout=PIPE, stderr=DEVNULL)

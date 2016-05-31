@@ -190,6 +190,55 @@ elif mode == 'inst2':
 
     print('(and (= X0 X1) (distinct X2 X3))'.format(C))
     print(')' * (C + 5))
+elif mode == 'inst3':
+    memsets = []
+    C = 0
+
+    smt2int = lambda s: int(s.split()[1][2:])
+    def emit(p):
+        global C
+        tmps = []
+        epilogue = '(select A0 {})'.format(p)
+
+        for dst, val, size in reversed(memsets):
+            if p[0] == dst[0] == size[0] == '(':
+                p_ = smt2int(p)
+                dst_ = smt2int(dst)
+                size_ = smt2int(size)
+                if dst_ <= p_ < dst_ + size_:
+                    epilogue = val
+                    break
+            cond = '(bvult (bvsub {} {}) {})'.format(p, dst, s2i(size))
+            tmp = '(ite {} {} C{{}})'.format(cond, val)
+            tmps.append(tmp)
+
+        print('(let ((C{} {}))'.format(C, epilogue))
+        C += 1
+
+        for tmp in reversed(tmps):
+            template = '(let ((C{} ' + tmp + '))'
+            print(template.format(C, C - 1))
+            C += 1
+
+        return 'C{}'.format(C - 1)
+
+    print('(assert')
+    for k in range(K):
+        m = rnd(8)
+        dst = rndi() if m & 1 else 'P{}'.format(rnd(V))
+        val = rndb() if m & 2 else rndi()
+        size = rnds() if m & 4 else 'S{}'.format(rnd(V))
+        if m & 2 == 0:
+            val = emit(val)
+        memset = (dst, val, size)
+        memsets.append(memset)
+
+    X = [rndi(), rndi(), rndi(), rndi()]
+    for i, x in enumerate(X):
+        print('(let ((X{} {}))'.format(i, emit(x)))
+
+    print('(and (= X0 X1) (distinct X2 X3))'.format(C))
+    print(')' * (C + 5))
 else:
     assert False, "Invalid mode"
 
