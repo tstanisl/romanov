@@ -23,3 +23,33 @@ class Opcode(Encodable):
         args = [encoder.encode(arg) for arg in self.args]
         formula = '({} {})'.format(self.smt2op, ' '.join(args))
         return formula
+
+FRESH = object()
+
+class Symbolic(Encodable):
+    "Abstract class for symbolic classes in Romanov"
+    def __init__(self, value=FRESH):
+        super().__init__()
+        #pylint: disable=maybe-no-member
+        if value is FRESH or self.is_literal(value):
+            # handle fresh variables and literals
+            self.value = value
+        elif isinstance(value, self.__class__):
+            # copy value from Symbolic to a new one
+            self.value = value.value
+        elif isinstance(value, Opcode):
+            # ensure that Opcode returns a compatible type
+            if isinstance(self, value.returns):
+                raise TypeError('Opcode returns non-compalible class')
+            self.value = value
+        else:
+            raise TypeError('Value is non-compatible')
+        #pylint: enable=maybe-no-member
+
+    @classmethod
+    def is_literal(cls, _):
+        "Checks if value is a literal. By default Symbolic has no literals"
+        return False
+
+    def encode(self, value):
+        pass
