@@ -1,6 +1,7 @@
 "Core primitives of Romanov environment"
 
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 
 class Encodable(ABC):
     "Class dedicated for objects that can be translated to SMTLIB2"
@@ -53,3 +54,15 @@ class Symbolic(Encodable):
 
     def encode(self, value):
         pass
+
+class Encoder:
+    "Encodes Symbolics as SMTLIB2"
+    def __init__(self):
+        self._declares = OrderedDict()
+        self._assumes = []
+
+    def assume(self, root):
+        "Add assume to the encoded formula. The argument root must be Bool"
+
+    def encode(self):
+        "Runs encoding process. Returns string."
