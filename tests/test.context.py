@@ -1,6 +1,6 @@
 "Unit tests for core classes and methods of Romanov package"
 
-from romanov.core import current, make_current, Context
+from romanov.context import current, make_current, Context
 import unittest
 
 class CurrentTest(unittest.TestCase):
