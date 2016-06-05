@@ -72,7 +72,17 @@ class Encoder:
         self._assumes = []
 
     def assume(self, root):
-        "Add assume to the encoded formula. The argument root must be Bool"
+        """Add assume to the encoded formula.
+        The argument root must be Bool."""
 
-    def encode(self):
-        "Runs encoding process. Returns string."
+    def declare(self, ref, smt2type):
+        """Creates a new fresh variable of type smt2type.
+           Returns label as string."""
+
+    def encode(self, value):
+        """Encodes value as SMTLIB2.
+           Value must be Encodable.
+           Returns SMTLIB2 label as string."""
+
+    def emit(self):
+        "Translates assumptions to SMTLIB2 query. Returns (large) string."
