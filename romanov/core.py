@@ -57,7 +57,13 @@ class Symbolic(Encodable):
         "Returns string with SMTLIB2 type"
 
     def smt2_encode(self, encoder):
-        pass
+        # Literals should be handled in subclass
+        assert not self.is_literal(self.value)
+
+        if self.value is FRESH:
+            return encoder.declare(self, self.smt2_type())
+        else:
+            return encoder.encode(self.value)
 
 class Encoder:
     "Encodes Symbolics as SMTLIB2"
