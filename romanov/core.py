@@ -52,6 +52,10 @@ class Symbolic(Encodable):
         "Checks if value is a literal. By default Symbolic has no literals"
         return False
 
+    @abstractmethod
+    def smt2_type(self):
+        "Returns string with SMTLIB2 type"
+
     def smt2_encode(self, encoder):
         pass
 
