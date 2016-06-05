@@ -65,6 +65,41 @@ class Symbolic(Encodable):
         else:
             return encoder.encode(self.value)
 
+class Bool(Symbolic):
+    "Abstraction of symbolic boolean variable"
+    def __init__(self, value=FRESH):
+        super().__init__(value)
+
+    @classmethod
+    def is_literal(cls, value):
+        return isinstance(value, bool)
+
+    def smt2_type(self):
+        return 'Bool'
+
+    def smt2_encode(self, encoder):
+        if self.value is True:
+            return 'true'
+        if self.value is False:
+            return 'false'
+        return super().smt2_encode(encoder)
+
+    @staticmethod
+    def _operator(smt2op, *args):
+        "Helper for implementing operators"
+        try:
+            args = [Bool(arg) for arg in args]
+            value = Opcode(smt2op, Bool, *args)
+            return Bool(value)
+        except TypeError:
+            return NotImplemented
+
+    def __eq__(self, arg):
+        return self._operator('=', self, arg)
+
+    def __ne__(self, arg):
+        return self._operator('distinct', self, arg)
+
 class Encoder:
     "Encodes Symbolics as SMTLIB2"
     def __init__(self):
