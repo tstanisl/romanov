@@ -41,7 +41,7 @@ class Symbolic(Encodable):
         elif isinstance(value, Opcode):
             # ensure that Opcode returns a compatible type
             if isinstance(self, value.returns):
-                raise TypeError('Opcode returns non-compalible class')
+                raise TypeError('Opcode returns non-compatible class')
             self.value = value
         else:
             raise TypeError('Value is non-compatible')
