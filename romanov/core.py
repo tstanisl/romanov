@@ -9,7 +9,7 @@ class Encodable(ABC):
         pass
 
     @abstractmethod
-    def encode(self, encoder):
+    def smt2_encode(self, encoder):
         "Encodes objects in SMTLIB2"
 
 class Opcode(Encodable):
@@ -20,7 +20,7 @@ class Opcode(Encodable):
         self.returns = returns
         self.args = args
 
-    def encode(self, encoder):
+    def smt2_encode(self, encoder):
         args = [encoder.encode(arg) for arg in self.args]
         formula = '({} {})'.format(self.smt2op, ' '.join(args))
         return formula
@@ -52,7 +52,7 @@ class Symbolic(Encodable):
         "Checks if value is a literal. By default Symbolic has no literals"
         return False
 
-    def encode(self, value):
+    def smt2_encode(self, encoder):
         pass
 
 class Encoder:
