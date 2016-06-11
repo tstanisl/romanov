@@ -1,28 +1,33 @@
 "Core primitives of Romanov environment"
 
 from abc import ABCMeta, abstractmethod
-from collections import OrderedDict, namedtuple
 import sys
 
 class Encoder:
-    "Encodes Symbolics as SMTLIB2"
-    Entry = namedtuple('EncoderEntry', ['name', 'ref', 'smt2'])
+    "Encodes set of assumptions as SMTLIB2 query"
 
     def __init__(self):
-        self._cache = OrderedDict()
+        self._declares = []
+        self._formulae = []
+        self._cache = dict()
         self._assumes = []
 
-    def _cache_add(self, entry):
-        "Add entry to the cache indexed by ref"
-        key = id(entry.ref)
-        self._cache[key] = entry
-
-    def _cache_find(self, ref):
-        "Checks if ref was added to cache. Return label or None."
-        key = id(ref)
+    def _encode_cached(self, encodable, func):
+        "Helper for decorator. Caches SMTLIB2 encoding of encodable"
+        key = id(encodable)
         if key in self._cache:
-            return self._cache[key].name
-        return None
+            return self._cache[key][0]
+        smt2name = func(encodable, self)
+        self._cache[key] = (smt2name, encodable)
+        return smt2name
+
+    @staticmethod
+    def cached(func):
+        "Decorator that adds caching for func"
+        def helper(encodable, encoder):
+            "Decorated func"
+            return Encoder._encode_cached(encoder, encodable, func)
+        return helper
 
     def assume(self, root):
         """Add assume to the encoded formula.
@@ -30,82 +35,46 @@ class Encoder:
         root = Bool(root)
         self._assumes.append(root)
 
-    def declare(self, ref, smt2type):
+    def declare(self, smt2type):
         """Creates a new fresh variable of type smt2type.
            Returns label as string."""
-        name = self._cache_find(ref)
-        if name is not None:
-            return name
+        self._declares.append(smt2type)
+        return 'D{}'.format(len(self._declares) - 1)
 
-        name = 'D{}'.format(len(self._cache))
-        smt2 = '(declare-fun {} () {})'.format(name, smt2type)
-        entry = Encoder.Entry(name, ref, smt2)
+    def formula(self, formula):
+        "Constructs new label from a given formula."
+        self._formulae.append(formula)
+        return 'F{}'.format(len(self._formulae) - 1)
 
-        self._cache_add(entry)
-
-        return name
-
-    def formula(self, ref, formula):
-        "Constructs new label from given formula"
-        ret = self._cache_find(ref)
-        if ret is not None:
-            return ret
-
-        name = 'L{}'.format(len(self._cache))
-        entry = Encoder.Entry(name, ref, formula)
-
-        self._cache_add(entry)
-
-        return name
-
-    @classmethod
-    def cached(cls, func):
-        "Decorator that adds caching for func"
-        print('Decorated', func)
-        return func
-
-    def encode(self, value):
-        """Encodes value as SMTLIB2.
-           Value must be Encodable.
-           Returns SMTLIB2 label as string."""
-        ret = self._cache_find(value)
-        if ret is not None:
-            return ret
-
-        assert isinstance(value, Encodable)
-
-        return value.smt2_encode(self)
-
-    def run(self):
-        "Translates assumptions to SMTLIB2 query. Returns (large) string."
+    def encode(self):
+        "Encoders all assumptions to SMTLIB2 query. Returns a (large) string."
         clauses = []
+        assumes_copy = []
         while self._assumes:
-            root = self._assumes.pop()
-            result = self.encode(root)
-            clauses.append(result)
+            assume = self._assumes.pop()
+            assumes_copy.append(assume)
+            clause = assume.smt2_encode(self)
+            clauses.append(clause)
 
         lines = ['(set-logic QF_AUFBV)']
 
-        for name, _, smt2 in self._cache.values():
-            if name.startswith('D'):
-                lines.append(smt2)
+        for idx, smt2type in enumerate(self._declares):
+            line = '(declare-fun D{} () {})'.format(idx, smt2type)
+            lines.append(line)
 
-        mark = len(lines)
         lines.append('(assert')
-        for name, _, smt2 in self._cache.values():
-            if name.startswith('L'):
-                line = '  (let (({} {}))'.format(name, smt2)
-                lines.append(line)
+
+        for idx, formula in enumerate(self._formulae):
+            line = '  (len ((F{} {}))'.format(idx, formula)
+            lines.append(line)
+
         lines.append('  (and true')
-        n_brackets = len(lines) - mark
 
-        lines += ['       ' + clause for clause in clauses]
-        line = ')' * n_brackets
-        lines.append(line)
+        lines.extend('    ' + clause for clasue in clauses)
 
-        # reset encoder
-        self._cache = {}
-        self._assumes = []
+        lines.append(')' * (len(self._formulae) + 2))
+
+        self._assumes = assumes_copy
 
         return '\n'.join(lines)
 
