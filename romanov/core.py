@@ -101,7 +101,7 @@ class Fresh(Encodable):
         self.smt2_type = smt2_type
 
     def smt2_encode(self, encoder):
-        return encoder.declare(self, self.smt2_type)
+        return encoder.declare(self.smt2_type)
 
 class Opcode(Encodable):
     "Abstraction of result of SMTLIB2 operation"
@@ -111,9 +111,9 @@ class Opcode(Encodable):
         self.args = args
 
     def smt2_encode(self, encoder):
-        args = [encoder.encode(arg) for arg in self.args]
+        args = [arg.smt2_encode(encoder) for arg in self.args]
         formula = '({} {})'.format(self.smt2op, ' '.join(args))
-        return encoder.formula(self, formula)
+        return encoder.formula(formula)
 
 class Symbolic(Encodable):
     "Abstract class for symbolic classes in Romanov"
@@ -130,7 +130,7 @@ class Symbolic(Encodable):
         self.value = value
 
     def smt2_encode(self, encoder):
-        return encoder.encode(self.value)
+        return self.value.smt2_encode(encoder)
 
 class Bool(Symbolic):
     "Abstraction of symbolic boolean variable"
