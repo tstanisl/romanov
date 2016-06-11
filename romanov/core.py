@@ -65,7 +65,7 @@ class Encoder:
         lines.append('(assert')
 
         for idx, formula in enumerate(self._formulae):
-            line = '  (len ((F{} {}))'.format(idx, formula)
+            line = '  (let ((F{} {}))'.format(idx, formula)
             lines.append(line)
 
         lines.append('  (and true')
@@ -73,6 +73,8 @@ class Encoder:
         lines.extend('    ' + clause for clasue in clauses)
 
         lines.append(')' * (len(self._formulae) + 2))
+
+        lines.append('(check-sat)')
 
         self._assumes = assumes_copy
 
