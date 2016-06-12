@@ -119,15 +119,11 @@ class Opcode(Encodable):
 
 class Symbolic(Encodable):
     "Abstract class for symbolic classes in Romanov"
-    literals = ()
     def __init__(self, value):
         super().__init__()
 
         if isinstance(value, Symbolic):
             value = value.value
-
-        if not isinstance(value, (Fresh, Opcode) + self.literals):
-            TypeError('Valuee is non-compatible')
 
         self.value = value
 
@@ -136,10 +132,14 @@ class Symbolic(Encodable):
 
 class Bool(Symbolic):
     "Abstraction of symbolic boolean variable"
-    literals = (bool,)
     def __init__(self, value=None):
         if value is None:
             value = Fresh('Bool')
+
+        types = (Fresh, Opcode, Bool, bool)
+        if not isinstance(value, types):
+            raise TypeError('value type is incompatible with Bool')
+
         super().__init__(value)
 
     def smt2_encode(self, encoder):
