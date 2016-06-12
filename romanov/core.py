@@ -105,8 +105,26 @@ class Fresh(Encodable):
     def smt2_encode(self, encoder):
         return encoder.declare(self.smt2_type)
 
+def new_opcode(smt2op, *args):
+    if not hasattr(new_opcode, '_cache'):
+        new_opcode._cache = {}
+    cache = new_opcode._cache
+
+    key = (smt2op,) + tuple(repr(arg.value) for arg in args)
+    if key in cache:
+        print('; reused', key, '->', cache[key])
+        return cache[key]
+
+    instance = Encodable.__new__(Opcode)
+    cache[key] = instance
+    print('; cached', key, '->', instance)
+    return instance
+
 class Opcode(Encodable):
     "Abstraction of result of SMTLIB2 operation"
+    def __new__(cls, *args):
+        return new_opcode(*args)
+
     def __init__(self, smt2op, *args):
         super().__init__()
         self.smt2op = smt2op
