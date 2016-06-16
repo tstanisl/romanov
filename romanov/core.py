@@ -193,3 +193,20 @@ class Bool(Symbolic):
 
     def __ne__(self, arg):
         return self._operator('distinct', self, arg)
+
+    def __or__(self, arg):
+        return self._operator('or', self, arg)
+    __ror__ = __or__
+
+    def __and__(self, arg):
+        return self._operator('and', self, arg)
+    __rand__ = __and__
+
+    def __rshift__(self, arg):
+        return self._operator('=>', self, arg)
+
+    def __rrshift__(self, arg):
+        return self._operator('=>', arg, self)
+
+    def __neg__(self):
+        return self._operator('not', self)
