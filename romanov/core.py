@@ -106,9 +106,12 @@ class Fresh(Encodable):
         return encoder.declare(self.smt2_type)
 
 def new_opcode(smt2op, *args):
-    if not hasattr(new_opcode, '_cache'):
-        new_opcode._cache = {}
-    cache = new_opcode._cache
+    """Produces a new Opcode object.
+       Uses caching therefore returns the same object if
+       called with the same arguments."""
+    if not hasattr(new_opcode, 'cache'):
+        new_opcode.cache = {}
+    cache = new_opcode.cache
 
     key = (smt2op,) + tuple(repr(arg.value) for arg in args)
     if key in cache:
