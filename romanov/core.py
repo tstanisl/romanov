@@ -89,6 +89,9 @@ class EncodableMeta(ABCMeta):
 
 class Encodable(metaclass=EncodableMeta):
     "Class dedicated for objects that can be translated to SMTLIB2"
+    def __new__(cls, *_):
+        return super(Encodable, cls).__new__(cls)
+
     def __init__(self):
         pass
 
