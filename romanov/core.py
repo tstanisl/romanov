@@ -1,6 +1,7 @@
 "Core primitives of Romanov environment"
 
 from abc import ABCMeta, abstractmethod
+from functools import wraps
 import sys
 
 class Encoder:
@@ -12,22 +13,16 @@ class Encoder:
         self._cache = dict()
         self._assumes = []
 
-    def _encode_cached(self, encodable, func):
-        "Helper for decorator. Caches SMTLIB2 encoding of encodable"
+    def cached_encode(self, encodable, func):
+        """Caches SMTLIB2 encoding of encodable.
+        The encoding is generated using func.
+        Returns string."""
         key = id(encodable)
         if key in self._cache:
             return self._cache[key][0]
         smt2name = func(encodable, self)
         self._cache[key] = (smt2name, encodable)
         return smt2name
-
-    @staticmethod
-    def cached(func):
-        "Decorator that adds caching for func"
-        def helper(encodable, encoder):
-            "Decorated func"
-            return Encoder._encode_cached(encoder, encodable, func)
-        return helper
 
     def assume(self, root):
         """Add assume to the encoded formula.
@@ -84,7 +79,14 @@ class EncodableMeta(ABCMeta):
     "Metaclass used to decorate methods that are cached by Encoder"
     def __new__(mcs, name, bases, namespace):
         cls = ABCMeta.__new__(mcs, name, bases, namespace)
-        cls.smt2_encode = Encoder.cached(cls.smt2_encode)
+        # dereference to avoid infinite recursion if decorated smt2_encode
+        # is called via cls.smt2_encode
+        to_wrap = cls.smt2_encode
+        @wraps(to_wrap)
+        def __wrapper(encodable, encoder):
+            "Decorated smt2_encode"
+            return encoder.cached_encode(encodable, to_wrap)
+        cls.smt2_encode = __wrapper
         return cls
 
 class Encodable(metaclass=EncodableMeta):
