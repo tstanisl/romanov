@@ -67,7 +67,7 @@ class Encoder:
 
         lines.append('  (and true')
 
-        lines.extend('    ' + clause for clasue in clauses)
+        lines.extend('    ' + clause for clause in clauses)
 
         lines.append(')' * (len(self._formulae) + 2))
 
