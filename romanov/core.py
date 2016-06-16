@@ -4,6 +4,8 @@ from abc import ABCMeta, abstractmethod
 from functools import wraps
 import sys
 
+#pylint: disable=too-few-public-methods
+
 class Encoder:
     "Encodes set of assumptions as SMTLIB2 query"
 
