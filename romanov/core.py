@@ -210,3 +210,51 @@ class Bool(Symbolic):
 
     def __neg__(self):
         return self._operator('not', self)
+
+class BitVecBase(Symbolic):
+    "Base class for all bit vector classes."
+    def __init__(self, value=None):
+        bits = len(self)
+
+        if value is None:
+            smt2type = '(_ BitVec {})'.format(bits)
+            value = Fresh(smt2type)
+
+        cls = BitVecClass(bits)
+        types = (Fresh, Opcode, cls, int)
+        if not isinstance(value, types):
+            raise TypeError('value is not compatible with ' + str(cls))
+
+        if isinstance(value, int) and (value < 0 or value >= 2**bits):
+            raise ValueError('value can not be represented by ' + str(cls))
+
+        super().__init__(value)
+
+    def smt2_encode(self, encoder):
+        if isinstance(self.value, int):
+            return '(_ bv{} {})'.format(self.value, len(self))
+        return super().smt2_encode(encoder)
+
+    __len__ = None
+
+class BitVecClass(type):
+    "Metaclass used to generate classes for bit vectors of fixed size."
+    _cache = {}
+    def __new__(mcs, bits):
+        # return class if it was already cached
+        if bits in mcs._cache:
+            return mcs._cache[bits]
+
+        name = 'BitVec{}'.format(bits)
+        nspc = {'__len__': lambda _: bits}
+        cls = type(name, (BitVecBase,), nspc)
+
+        mcs._cache[bits] = cls
+        return cls
+
+def bitvec(bits, value=None):
+    """Returns bit vector of class BitVec{bits}.
+       Intialized with {value} or fresh symbol is {value} is missing.
+       Shortcut for BitVecClass(bits)(value)."""
+    cls = BitVecClass(bits)
+    return cls(value)
