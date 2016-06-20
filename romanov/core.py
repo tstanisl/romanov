@@ -237,6 +237,29 @@ class BitVecBase(Symbolic):
 
     __len__ = None
 
+    @classmethod
+    def _operator(cls, smt2op, *args, returns=None):
+        "Helper for implementing operators."
+        try:
+            if returns is None:
+                returns = cls
+            args = [cls(arg) for arg in args]
+            value = Opcode(smt2op, *args)
+            return returns(value)
+        except TypeError:
+            print(sys.exc_info())
+            return NotImplemented
+
+    def __eq__(self, arg):
+        return self._operator('=', self, arg, returns=Bool)
+
+    def __ne__(self, arg):
+        return self._operator('distinct', self, arg, returns=Bool)
+
+    def bvadd(self, arg):
+        "Addition modulo len(self)."
+        return self._operator('bvadd', self, arg)
+
 class BitVecClass(type):
     "Metaclass used to generate classes for bit vectors of fixed size."
     _cache = {}
