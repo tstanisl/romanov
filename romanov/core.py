@@ -112,33 +112,37 @@ class Fresh(Encodable):
     def smt2_encode(self, encoder):
         return encoder.declare(self.smt2_type)
 
-def new_opcode(smt2op, *args):
-    """Produces a new Opcode object.
+def make_value(cls, *args, **kvargs):
+    """Produces a new value. Type cls must have get_key() class method.
+       The method should return value based on args/kvargs that
+       precisely define object among other cls-objects.
        Uses caching therefore returns the same object if
        called with the same arguments."""
-    if not hasattr(new_opcode, 'cache'):
-        new_opcode.cache = {}
-    cache = new_opcode.cache
+    if not hasattr(make_value, 'cache'):
+        make_value.cache = {}
+    cache = make_value.cache
 
-    key = (smt2op,) + tuple(repr(arg.value) for arg in args)
+    key = (cls,) + cls.get_key(*args, **kvargs)
     if key in cache:
         print('; reused', key, '->', cache[key])
         return cache[key]
 
-    instance = Encodable.__new__(Opcode)
+    instance = cls(*args, **kvargs)
     cache[key] = instance
     print('; cached', key, '->', instance)
     return instance
 
 class Opcode(Encodable):
     "Abstraction of result of SMTLIB2 operation"
-    def __new__(cls, *args):
-        return new_opcode(*args)
-
     def __init__(self, smt2op, *args):
         super().__init__()
         self.smt2op = smt2op
         self.args = args
+
+    @classmethod
+    def get_key(cls, smt2op, *args):
+        "Computes a unique key from arguments of contructor."
+        return (smt2op,) + tuple(repr(arg.value) for arg in args)
 
     def smt2_encode(self, encoder):
         args = [arg.smt2_encode(encoder) for arg in self.args]
@@ -182,7 +186,7 @@ class Bool(Symbolic):
         "Helper for implementing operators"
         try:
             args = [Bool(arg) for arg in args]
-            value = Opcode(smt2op, *args)
+            value = make_value(Opcode, smt2op, *args)
             return Bool(value)
         except TypeError:
             print(sys.exc_info())
@@ -244,7 +248,7 @@ class BitVecBase(Symbolic):
             if returns is None:
                 returns = cls
             args = [cls(arg) for arg in args]
-            value = Opcode(smt2op, *args)
+            value = make_value(Opcode, smt2op, *args)
             return returns(value)
         except TypeError:
             print(sys.exc_info())
