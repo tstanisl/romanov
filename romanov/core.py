@@ -139,6 +139,19 @@ class NeOpcode(CmpOpcode):
             return False
         return super().make_value(*args)
 
+class BvultOpcode(CmpOpcode):
+    "Unsigned Less-Than omparison opcode."
+    smt2 = 'bvult'
+    @staticmethod
+    def compute(arg0, arg1):
+        "Applies unsigned comparison"
+        if (arg0 >= 0) == (arg1 >= 0):
+            return arg0 < arg1
+        # either arg0 or arg1 is negative
+        # negative mean LARGE for U2 encoding
+        # therefore positive argument is smaller
+        return arg1 if arg0 >= 0 else arg0
+
 class Bool(Symbolic):
     "Abstraction of symbolic boolean variable"
     def __init__(self, value=None):
@@ -245,6 +258,10 @@ class BitVecBase(Symbolic):
 
     def __ne__(self, arg):
         return self._cmp_operator(NeOpcode, self, arg)
+
+    def bvult(self, arg):
+        "Unsigned less-than comparison."
+        return self._cmp_operator(BvultOpcode, self, arg)
 
     def bvadd(self, arg):
         "Addition modulo len(self)."
