@@ -58,6 +58,7 @@ class Opcode(Codecable):
         return encoder.formula(formula)
 
 class IteOpcode(Opcode):
+    "If-Then-Else Opcode class"
     def __init__(self, cond, arg0, arg1):
         super().__init__('ite', cond, arg0, arg1)
 
