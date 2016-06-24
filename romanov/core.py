@@ -98,6 +98,47 @@ class Symbolic(Codecable):
         arg1 = cls(arg1)
         return make_value(IteOpcode, cond, arg0, arg1)
 
+class CmpOpcode(Opcode):
+    "Abstract class for comparison opcodes."
+    smt2 = None
+    compute = lambda *args: NotImplemented
+
+    def __init__(self, arg0, arg1):
+        super().__init__(self.smt2, arg0, arg1)
+
+    @classmethod
+    def get_key(cls, *args):
+        return super().get_key(cls.smt2, *args)
+
+    @classmethod
+    def make_value(cls, *args):
+        arg0, arg1 = args[:2]
+        if isinstance(arg0.value, int) and isinstance(arg1.value, int):
+            return cls.compute(arg0.value, arg1.value)
+        return cls(arg0, arg1)
+
+class EqOpcode(CmpOpcode):
+    "Equality comparison opcode."
+    smt2 = '='
+    compute = int.__eq__
+
+    @classmethod
+    def make_value(cls, *args):
+        if args[0].value is args[1].value:
+            return True
+        return super().make_value(*args)
+
+class NeOpcode(CmpOpcode):
+    "Non-equality comparison opcode."
+    smt2 = 'distinct'
+    compute = int.__ne__
+
+    @classmethod
+    def make_value(cls, *args):
+        if args[0].value is args[1].value:
+            return False
+        return super().make_value(*args)
+
 class Bool(Symbolic):
     "Abstraction of symbolic boolean variable"
     def __init__(self, value=None):
