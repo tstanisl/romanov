@@ -57,6 +57,24 @@ class Opcode(Codecable):
         formula = '({} {})'.format(self.smt2op, ' '.join(args))
         return encoder.formula(formula)
 
+class IteOpcode(Opcode):
+    def __init__(self, cond, arg0, arg1):
+        super().__init__('ite', cond, arg0, arg1)
+
+    @classmethod
+    def get_key(cls, *args):
+        return super().get_key('ite', *args)
+
+    @classmethod
+    def make_value(cls, cond, arg0, arg1):
+        if arg0.value is arg1.value:
+            return arg0
+        if cond.value is True:
+            return arg0
+        if cond.value is False:
+            return arg1
+        return cls(cond, arg0, arg1)
+
 class Symbolic(Codecable):
     "Abstract class for symbolic classes in Romanov"
     def __init__(self, value):
@@ -69,6 +87,14 @@ class Symbolic(Codecable):
 
     def smt2_encode(self, encoder):
         return self.value.smt2_encode(encoder)
+
+    @classmethod
+    def ite(cls, cond, arg0, arg1):
+        "If-then-else operator."
+        cond = Bool(cond)
+        arg0 = cls(arg0)
+        arg1 = cls(arg1)
+        return make_value(IteOpcode, cond, arg0, arg1)
 
 class Bool(Symbolic):
     "Abstraction of symbolic boolean variable"
