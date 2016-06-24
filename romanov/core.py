@@ -66,7 +66,8 @@ class IteOpcode(Opcode):
         return super().get_key('ite', *args)
 
     @classmethod
-    def make_value(cls, cond, arg0, arg1):
+    def make_value(cls, *args):
+        cond, arg0, arg1 = args[:3]
         if arg0.value is arg1.value:
             return arg0
         if cond.value is True:
