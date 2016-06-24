@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from functools import wraps
 
-class Encoder:
+class Codec:
     "Encodes set of assumptions as SMTLIB2 query"
 
     def __init__(self):
@@ -38,7 +38,7 @@ class Encoder:
         return 'F{}'.format(len(self._formulae) - 1)
 
     def encode(self):
-        "Encoders all assumptions to SMTLIB2 query. Returns a (large) string."
+        "Codecs all assumptions to SMTLIB2 query. Returns a (large) string."
         clauses = []
         assumes_copy = []
         while self._assumes:
@@ -71,8 +71,8 @@ class Encoder:
 
         return '\n'.join(lines)
 
-class EncodableMeta(ABCMeta):
-    "Metaclass used to decorate methods that are cached by Encoder"
+class CodecableMeta(ABCMeta):
+    "Metaclass used to decorate methods that are cached by Codec"
     def __new__(mcs, name, bases, namespace):
         cls = ABCMeta.__new__(mcs, name, bases, namespace)
         # dereference to avoid infinite recursion if decorated smt2_encode
@@ -85,10 +85,10 @@ class EncodableMeta(ABCMeta):
         cls.smt2_encode = __wrapper
         return cls
 
-class Encodable(metaclass=EncodableMeta):
+class Codecable(metaclass=CodecableMeta):
     "Class dedicated for objects that can be translated to SMTLIB2"
     def __new__(cls, *_):
-        return super(Encodable, cls).__new__(cls)
+        return super(Codecable, cls).__new__(cls)
 
     def __init__(self):
         pass

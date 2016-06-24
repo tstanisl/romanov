@@ -1,12 +1,12 @@
 "Core primitives of Romanov environment"
 
-from romanov.codec import Encodable
+from romanov.codec import Codecable
 from abc import abstractmethod
 import sys
 
 #pylint: disable=too-few-public-methods
 
-class Fresh(Encodable):
+class Fresh(Codecable):
     "Fresh symbols."
     def __init__(self, smt2_type):
         super().__init__()
@@ -35,7 +35,7 @@ def make_value(cls, *args, **kvargs):
     print('; cached', key, '->', instance)
     return instance
 
-class Opcode(Encodable):
+class Opcode(Codecable):
     "Abstraction of result of SMTLIB2 operation"
     def __init__(self, smt2op, *args):
         super().__init__()
@@ -52,7 +52,7 @@ class Opcode(Encodable):
         formula = '({} {})'.format(self.smt2op, ' '.join(args))
         return encoder.formula(formula)
 
-class Symbolic(Encodable):
+class Symbolic(Codecable):
     "Abstract class for symbolic classes in Romanov"
     def __init__(self, value):
         super().__init__()

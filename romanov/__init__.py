@@ -19,5 +19,7 @@
 # 02110-1301, USA.
 #
 
-from romanov.codec import Encoder
+from romanov.codec import Codec
 from romanov.core import Bool, bitvec
+
+Encoder = Codec
