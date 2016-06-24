@@ -19,4 +19,5 @@
 # 02110-1301, USA.
 #
 
-from romanov.core import Encoder, Bool
+from romanov.codec import Encoder
+from romanov.core import Bool, bitvec
