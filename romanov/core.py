@@ -159,21 +159,21 @@ class Bool(Symbolic):
         return super().smt2_encode(encoder)
 
     @staticmethod
-    def _operator(smt2op, *args):
+    def _operator(opcls, *args):
         "Helper for implementing operators"
         try:
             args = [Bool(arg) for arg in args]
-            value = make_value(Opcode, smt2op, *args)
+            value = make_value(opcls, *args)
             return Bool(value)
         except TypeError:
             print(sys.exc_info())
             return NotImplemented
 
     def __eq__(self, arg):
-        return self._operator('=', self, arg)
+        return self._operator(EqOpcode, self, arg)
 
     def __ne__(self, arg):
-        return self._operator('distinct', self, arg)
+        return self._operator(NeOpcode, self, arg)
 
     def __or__(self, arg):
         return self._operator('or', self, arg)
@@ -219,23 +219,32 @@ class BitVecBase(Symbolic):
     __len__ = None
 
     @classmethod
-    def _operator(cls, smt2op, *args, returns=None):
+    def _cmp_operator(cls, opcls, *args):
         "Helper for implementing operators."
         try:
-            if returns is None:
-                returns = cls
             args = [cls(arg) for arg in args]
-            value = make_value(Opcode, smt2op, *args)
-            return returns(value)
+            value = make_value(opcls, *args)
+            return Bool(value)
+        except TypeError:
+            print(sys.exc_info())
+            return NotImplemented
+
+    @classmethod
+    def _operator(cls, opcls, *args):
+        "Helper for implementing operators."
+        try:
+            args = [cls(arg) for arg in args]
+            value = make_value(opcls, *args)
+            return cls(value)
         except TypeError:
             print(sys.exc_info())
             return NotImplemented
 
     def __eq__(self, arg):
-        return self._operator('=', self, arg, returns=Bool)
+        return self._cmp_operator(EqOpcode, self, arg)
 
     def __ne__(self, arg):
-        return self._operator('distinct', self, arg, returns=Bool)
+        return self._cmp_operator(NeOpcode, self, arg)
 
     def bvadd(self, arg):
         "Addition modulo len(self)."
