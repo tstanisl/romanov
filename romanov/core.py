@@ -30,7 +30,7 @@ def make_value(cls, *args, **kvargs):
         print('; reused', key, '->', cache[key])
         return cache[key]
 
-    instance = cls(*args, **kvargs)
+    instance = cls.make_value(*args, **kvargs)
     cache[key] = instance
     print('; cached', key, '->', instance)
     return instance
@@ -46,6 +46,11 @@ class Opcode(Codecable):
     def get_key(cls, smt2op, *args):
         "Computes a unique key from arguments of contructor."
         return (smt2op,) + tuple(repr(arg.value) for arg in args)
+
+    @classmethod
+    def make_value(cls, *args, **kvargs):
+        "Create value of Opcode. May apply simplifications."
+        return cls(*args, **kvargs)
 
     def smt2_encode(self, encoder):
         args = [arg.smt2_encode(encoder) for arg in self.args]
