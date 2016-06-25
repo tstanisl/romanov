@@ -5,5 +5,11 @@ if __name__ == '__main__':
     a = Bool()
     b = Bool()
     c = a == b
-    smt2 = encoder.encode(c)
-    print(smt2)
+    d = a == b
+    #encoder.assume(c)
+    encoder.assume(d)
+    a = b >> True
+    encoder.assume(a)
+    print(encoder.encode())
+  
+    #help(c.smt2_encode)

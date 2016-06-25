@@ -16,7 +16,8 @@ class Fresh(Codecable):
         return encoder.declare(self.smt2_type)
 
     def smt2_decode(self, codec):
-        return codec.get_value(self)
+        label = self.smt2_encode(codec)
+        return codec.get_value(label)
 
 def make_value(cls, *args, **kvargs):
     """Produces a new value. Type cls must have get_key() class method.
@@ -24,15 +25,18 @@ def make_value(cls, *args, **kvargs):
        precisely define object among other cls-objects.
        Uses caching therefore returns the same object if
        called with the same arguments."""
+    print('; make_value', cls, args, kvargs)
     if not hasattr(make_value, 'cache'):
         make_value.cache = {}
     cache = make_value.cache
 
     key = (cls,) + cls.get_key(*args, **kvargs)
+    print('; key=', key)
     if key in cache:
         print('; reused', key, '->', cache[key])
         return cache[key]
 
+    print(';', cls, 'make_value(', args, kvargs, ')')
     instance = cls.make_value(*args, **kvargs)
     cache[key] = instance
     print('; cached', key, '->', instance)
@@ -98,6 +102,11 @@ class Symbolic(Codecable):
 
     def smt2_encode(self, encoder):
         return self.value.smt2_encode(encoder)
+
+    def smt2_decode(self, codec):
+        if hasattr(self.value, 'smt2_decode'):
+            return self.value.smt2_decode(codec)
+        return self.value
 
     @classmethod
     def ite(cls, cond, arg0, arg1):
@@ -166,6 +175,11 @@ class BvultOpcode(CmpOpcode):
         # therefore positive argument is smaller
         return arg1 if arg0 >= 0 else arg0
 
+class AddOpcode(CmpOpcode):
+    "Addition opcode."
+    smt2 = 'bvadd'
+    compute = int.__add__
+
 class Bool(Symbolic):
     "Abstraction of symbolic boolean variable"
     def __init__(self, value=None):
@@ -184,9 +198,6 @@ class Bool(Symbolic):
         if self.value is False:
             return 'false'
         return super().smt2_encode(encoder)
-
-    def smt2_decode(self, codec):
-        return self.value.smt2_decode(codec)
 
     @staticmethod
     def _operator(opcls, *args):
@@ -251,6 +262,7 @@ class BitVecBase(Symbolic):
     @classmethod
     def _cmp_operator(cls, opcls, *args):
         "Helper for implementing operators."
+        print(';_cmp_operator', cls, opcls, args)
         try:
             args = [cls(arg) for arg in args]
             value = make_value(opcls, *args)
@@ -281,8 +293,8 @@ class BitVecBase(Symbolic):
         return self._cmp_operator(BvultOpcode, self, arg)
 
     def bvadd(self, arg):
-        "Addition modulo len(self)."
-        return self._operator('bvadd', self, arg)
+        "Addition modulo 2**len(self)."
+        return self._operator(AddOpcode, self, arg)
 
 class BitVecClass(type):
     "Metaclass used to generate classes for bit vectors of fixed size."

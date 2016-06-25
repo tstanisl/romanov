@@ -63,8 +63,9 @@ class Codec:
             clause = assume.smt2_encode(self)
             clauses.append(clause)
 
-        emit = self._solver.emit
+        emit = lambda smt2: self._solver.emit(smt2)
 
+        emit('(set-option :produce-models true)')
         emit('(set-logic QF_AUFBV)')
 
         for idx, smt2type in enumerate(self._declares):
@@ -87,6 +88,7 @@ class Codec:
         self._assumes = assumes_copy
 
     def solve(self):
+        self._solver.reset()
         self._encode()
         self._solver.emit('(check-sat)')
         ans = self._solver.recv()
@@ -94,9 +96,14 @@ class Codec:
 
     def get_value(self, label):
         smt2 = '(get-value ({}))'.format(label)
+        print('get-value', label, smt2)
         self._solver.emit(smt2)
         ans = self._solver.recv()
-        return smt2_to_int(ans)
+        try:
+            return smt2_to_int(ans)
+        except:
+            print('Invalid SMT2 answer:', ans)
+            raise
 
 class CodecableMeta(ABCMeta):
     "Metaclass used to decorate methods that are cached by Codec"

@@ -43,7 +43,7 @@ class PipeSolver(Solver):
     def __init__(self, args, env=None, timeout=None):
         super().__init__()
         self._args = args
-        self._env = env or {}
+        self._env = env
         self._timeout = timeout
         self._pipe = None
 
@@ -87,6 +87,7 @@ class PipeSolver(Solver):
             worker.join()
             return 'timeout'
 
+        print('received:', ans)
         return ans
 
     def __del__(self):
