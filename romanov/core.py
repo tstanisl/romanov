@@ -15,6 +15,9 @@ class Fresh(Codecable):
     def smt2_encode(self, encoder):
         return encoder.declare(self.smt2_type)
 
+    def smt2_decode(self, codec):
+        return codec.get_value(self)
+
 def make_value(cls, *args, **kvargs):
     """Produces a new value. Type cls must have get_key() class method.
        The method should return value based on args/kvargs that
@@ -77,6 +80,12 @@ class IteOpcode(Opcode):
             return arg1
         return cls(cond, arg0, arg1)
 
+    def smt2_decode(self, codec):
+        cond = self.args[0].smt2_decode(codec)
+        arg0 = self.args[1].smt2_decode(codec)
+        arg1 = self.args[2].smt2_decode(codec)
+        return arg0 if cond else arg1
+
 class Symbolic(Codecable):
     "Abstract class for symbolic classes in Romanov"
     def __init__(self, value):
@@ -116,6 +125,11 @@ class CmpOpcode(Opcode):
         if isinstance(arg0.value, int) and isinstance(arg1.value, int):
             return cls.compute(arg0.value, arg1.value)
         return cls(arg0, arg1)
+
+    def smt2_decode(self, codec):
+        arg0 = self.args[0].smt2_decode(codec)
+        arg1 = self.args[1].smt2_decode(codec)
+        return self.compute(arg0, arg1)
 
 class EqOpcode(CmpOpcode):
     "Equality comparison opcode."
@@ -170,6 +184,9 @@ class Bool(Symbolic):
         if self.value is False:
             return 'false'
         return super().smt2_encode(encoder)
+
+    def smt2_decode(self, codec):
+        return self.value.smt2_decode(codec)
 
     @staticmethod
     def _operator(opcls, *args):
